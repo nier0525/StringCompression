@@ -1,0 +1,115 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <string>
+using namespace std;
+
+string String_Compression(__in string _src)
+{		
+	vector<string> results;	// 결과값들을 담을 벡터 컨테이너
+	string str = _src;	// 매개변수 복사
+
+	// 전달 받은 문자열 길이의 반
+	int half_len = _src.length() / 2;
+
+	// 길이가 2 이하인 문자열은 압축하여도 의미가 없으므로 예외 처리
+	if (half_len < 2) throw "더 이상 압축할 수 없는 문자열입니다.";
+
+	int i, j = 0;
+
+	// 최대 현재 문자열 길이의 반에 해당하는 자리수 까지는 압축은 유효하다.
+	// 하지만 그 이상의 자리수는 압축을 하여도 유효하지 않다.
+	// 그렇기 때문에 문자열 길이의 반만 검사한다.
+	for (i = 2; i <= half_len; i++)
+	{
+		queue<string> que;	// 문자열 압축 결과를 담을 큐
+		vector<string> temps;	// 자리수대로 문자열을 분할 시켜 저장할 벡터
+		int count = 0;	// 압축 가능한 개수
+		int position = 0;	// 큐에 담기지 않은 문자열 위치값
+		
+		// 자리수에 맞게 문자열을 분할하여 벡터에 저장하는 작업
+		// ex. ab, bc, cd, dc, cd . . .
+		for (j = 0; j < str.length(); j++)
+			temps.push_back(str.substr(j, i));
+
+		// 분할된 문자열을 대조하며 압축 작업 진행
+		for (j = 0; j < temps.size(); j++)
+		{
+			// 압축이 가능한 문자열을 발견했을 경우
+			if (j < temps.size() - i && temps[j] == temps[j + i])
+			{
+				count++;	// 압축 가능한 개수 증가
+				j += (i - 1);	// 압축 가능한 문자열 사이의 값은 필요가 없으므로 위치 이동 작업
+			}
+			else
+			{
+				// 임시 문자열 변수
+				string temp_str = "";
+
+				// 현재 문자열 위치가 문자열 길이보다 크다면 작업 종료
+				if (position > str.length() - 1)
+					break;
+
+				// 개수가 0 이라는 것은 압축이 불가능한 문자임을 뜻함
+				if (count == 0)
+				{
+					temp_str += str[position];	// char -> string 캐스팅을 위한 연산
+					que.push(temp_str);	// 큐에 삽입
+					position++;	// 문자열 위치 이동
+				}
+				else
+				{
+					temp_str += to_string(count + 1);	// int 형인 개수를 string 으로 캐스팅 후 연산
+					temp_str += str.substr(position, i);	// 압축 가능한 문자를 추가
+
+					que.push(temp_str);	// 큐에 삽입
+					position = position + ((count + 1) * i);	// 압축된 문자들의 길이만큼 문자열 위치 이동
+					count = 0;	// 개수 초기화
+				}
+			}
+		}
+
+		// 결과값 받을 문자열 변수
+		string result = "";
+
+		// 큐를 순회하면서 차례대로 문자열 갱신
+		while (!que.empty())
+		{
+			result += que.front();
+			que.pop();
+		}
+		
+		// 문자열 벡터에 삽입
+		results.push_back(result);
+	}
+
+	// 문자열 벡터에 저장된 문자 중 가장 길이가 작은 문자열 찾기
+	string result = "";
+	for (i = 0; i < results.size() - 1; i++)
+	{
+		if (results[i].length() > results[i + 1].length())
+			result = results[i + 1];
+	}
+
+	// 2자리수만 검사한 문자열에 대한 예외 처리
+	if (result == "")
+		result = results.front();
+
+	// 결과 출력
+	cout << "Original : " << _src << endl;
+	cout << "Compression : " << result << endl;
+	cout << endl;
+
+	// 결과 반환
+	return result;
+}
+
+int main()
+{	
+	String_Compression("abcbcd");
+	String_Compression("abcdcd");
+	String_Compression("abcabc");	
+	String_Compression("abcdefg");
+	String_Compression("abababcd");
+	String_Compression("abcdefgabcdefgabcdefg");
+}
