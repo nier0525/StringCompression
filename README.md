@@ -1,0 +1,2 @@
+# StringCompression
+StringCompression Algorithm
